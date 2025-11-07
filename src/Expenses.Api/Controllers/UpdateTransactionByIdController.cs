@@ -1,21 +1,19 @@
-using Expenses.Api.Data;
 using Expenses.Api.DTOs;
-using Expenses.Api.Models;
+using Expenses.Api.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Expenses.Api.Controllers;
 
 [ApiController]
 public class UpdateTransactionByIdController : ControllerBase
 {
-    private readonly ApplicationDbContext _applicationDbContext;
+    private readonly ITransactionsService _transactionsService;
 
     public UpdateTransactionByIdController(
-        ApplicationDbContext applicationDbContext
+        ITransactionsService transactionsService
     )
     {
-        _applicationDbContext = applicationDbContext;
+        _transactionsService = transactionsService;
     }
 
     [HttpPut]
@@ -26,25 +24,19 @@ public class UpdateTransactionByIdController : ControllerBase
         CancellationToken cancellationToken
     )
     {
-        var transaction = await _applicationDbContext
-            .Set<Transaction>()
-            .SingleOrDefaultAsync(
-                t => t.Id == id,
-                cancellationToken: cancellationToken
+        var transaction = await _transactionsService
+            .Update(
+                id,
+                request.Type,
+                request.Amount,
+                request.Category,
+                cancellationToken
             );
 
         if (transaction is null)
         {
             return NotFound();
         }
-
-        transaction.Type = request.Type;
-        transaction.Amount = request.Amount;
-        transaction.Category = request.Category;
-        transaction.UpdatedAt = DateTimeOffset.UtcNow;
-
-        await _applicationDbContext
-            .SaveChangesAsync(cancellationToken);
 
         return Ok(transaction);
     }

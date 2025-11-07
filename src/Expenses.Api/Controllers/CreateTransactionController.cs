@@ -1,6 +1,5 @@
-using Expenses.Api.Data;
 using Expenses.Api.DTOs;
-using Expenses.Api.Models;
+using Expenses.Api.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Expenses.Api.Controllers;
@@ -8,13 +7,13 @@ namespace Expenses.Api.Controllers;
 [ApiController]
 public class CreateTransactionController : ControllerBase
 {
-    private readonly ApplicationDbContext _applicationDbContext;
+    private readonly ITransactionsService _transactionsService;
 
     public CreateTransactionController(
-        ApplicationDbContext applicationDbContext
+        ITransactionsService transactionsService
     )
     {
-        _applicationDbContext = applicationDbContext;
+        _transactionsService = transactionsService;
     }
 
     [HttpPost]
@@ -24,20 +23,13 @@ public class CreateTransactionController : ControllerBase
         CancellationToken cancellationToken
     )
     {
-        var transaction = new Transaction
-        {
-            Type = request.Type,
-            Amount = request.Amount,
-            Category = request.Category,
-            CreatedAt = DateTimeOffset.UtcNow,
-            UpdatedAt = DateTimeOffset.UtcNow
-        };
-
-        _applicationDbContext
-            .Set<Transaction>()
-            .Add(transaction);
-
-        await _applicationDbContext.SaveChangesAsync(cancellationToken);
+        var transaction = await _transactionsService
+            .Add(
+                request.Type,
+                request.Amount,
+                request.Category,
+                cancellationToken
+            );
 
         return Ok(transaction);
     }

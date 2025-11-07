@@ -1,7 +1,10 @@
 using Expenses.Api.Data;
+using Expenses.Api.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddScoped<ITransactionsService, TransactionsService>();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {

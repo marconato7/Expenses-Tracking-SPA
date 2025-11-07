@@ -1,21 +1,18 @@
-using Expenses.Api.Data;
-using Expenses.Api.DTOs;
-using Expenses.Api.Models;
+using Expenses.Api.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Expenses.Api.Controllers;
 
 [ApiController]
 public class DeleteTransactionByIdController : ControllerBase
 {
-    private readonly ApplicationDbContext _applicationDbContext;
+    private readonly ITransactionsService _transactionsService;
 
     public DeleteTransactionByIdController(
-        ApplicationDbContext applicationDbContext
+        ITransactionsService transactionsService
     )
     {
-        _applicationDbContext = applicationDbContext;
+        _transactionsService = transactionsService;
     }
 
     [HttpDelete]
@@ -25,19 +22,17 @@ public class DeleteTransactionByIdController : ControllerBase
         CancellationToken cancellationToken
     )
     {
-        var transaction = await _applicationDbContext
-            .Set<Transaction>()
-            .SingleOrDefaultAsync(t => t.Id == id, cancellationToken: cancellationToken);
+        var transaction = await _transactionsService
+            .Delete(
+                id,
+                cancellationToken
+            );
 
         if (transaction is null)
         {
             return NotFound();
         }
 
-        _applicationDbContext.Remove(transaction);
-
-        await _applicationDbContext.SaveChangesAsync(cancellationToken);
-
-        return Ok(transaction);
+        return Ok();
     }
 }

@@ -1,20 +1,18 @@
-using Expenses.Api.Data;
-using Expenses.Api.Models;
+using Expenses.Api.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Expenses.Api.Controllers;
 
 [ApiController]
 public class GetAllTransactionsController : ControllerBase
 {
-    private readonly ApplicationDbContext _applicationDbContext;
+    private readonly ITransactionsService _transactionsService;
 
     public GetAllTransactionsController(
-        ApplicationDbContext applicationDbContext
+        ITransactionsService transactionsService
     )
     {
-        _applicationDbContext = applicationDbContext;
+        _transactionsService = transactionsService;
     }
 
     [HttpGet]
@@ -23,10 +21,8 @@ public class GetAllTransactionsController : ControllerBase
         CancellationToken cancellationToken
     )
     {
-        var transactions = await _applicationDbContext
-            .Set<Transaction>()
-            .AsNoTracking()
-            .ToListAsync(cancellationToken);
+        var transactions = await _transactionsService
+            .GetAll(cancellationToken);
 
         return Ok(transactions);
     }
